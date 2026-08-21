@@ -1,0 +1,33 @@
+{
+  "$defs": {
+    "config": {
+      "additionalProperties": false,
+      "properties": {
+        "devices": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[\\w-]{1,63}$": {
+              "$ref": "#/$defs/deviceConfig"
+            }
+          },
+          "type": "object"
+        },
+        "server": {
+          "$ref": "https://raw.githubusercontent.com/rkosegi/go-http-commons/refs/heads/main/schemas/server.config.json"
+        }
+      },
+      "required": [
+        "devices",
+        "server"
+      ]
+    },
+    "deviceConfig": {
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/rkosegi/tuya-device2rest-bridge/schemas/config",
+  "$ref": "#/$defs/config",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Configuration schema for Tuya devices 2 REST bridge",
+  "type": "object"
+}

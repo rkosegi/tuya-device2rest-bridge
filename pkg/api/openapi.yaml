@@ -1,0 +1,224 @@
+# Copyright 2026 Richard Kosegi
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+openapi: 3.0.3
+info:
+  title: Tuya devices to REST API bridge
+  description: |-
+    Interact with Tuya smart devices using REST API.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: v1.0.0
+
+servers:
+  - url: '{protocol}://{host}:{port}/api/v1'
+    variables:
+      host:
+        default: localhost
+        description: Hostname of API server.
+      port:
+        default: '22005'
+        description: Port on which API server is listening.
+      protocol:
+        default: http
+        description: The protocol for accessing the API.
+tags:
+  - name: device
+    description: Device related operations
+  - name: info
+    description: Informational operations
+paths:
+  /device/{device}:
+    parameters:
+      - $ref: '#/components/parameters/device'
+    delete:
+      operationId: deleteDevice
+      summary: Delete a device
+      responses:
+        '204':
+          description: Device removed
+    get:
+      operationId: getDevice
+      summary: Get device detail
+      responses:
+        '200':
+          description: Device detail
+        '404':
+          description: Device with given name was not found
+
+  /device/{device}/stats:
+    parameters:
+      - $ref: '#/components/parameters/device'
+    get:
+      operationId: getDeviceStats
+      summary: Get device statistics
+      responses:
+        '200':
+          description: Device statistics
+        '404':
+          description: Device with given name was not found
+
+  /device/{device}/command/{command}:
+    post:
+      operationId: sendCommand
+      parameters:
+        - $ref: '#/components/parameters/device'
+        - name: command
+          in: path
+          description: Command ID
+          schema:
+            type: integer
+          required: true
+      summary: Send a command to the device
+      requestBody:
+        $ref: '#/components/requestBodies/SendCommandRequest'
+      responses:
+        '200':
+          description: Command send successfully
+        '400':
+          description: Invalid request
+
+  /device:
+    post:
+      summary: Create a new device
+      description: Configure a new device
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceSpec'
+      responses:
+        '201':
+          description: Device was configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceSpec'
+        '409':
+          description: Device with given name already exists
+      operationId: createDevice
+    get:
+      summary: List all configured devices
+      description: Get dictionary of all configured devices
+      responses:
+        '200':
+          description: Map of all configured devices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceMap"
+      operationId: listDevices
+
+components:
+  parameters:
+    device:
+      name: device
+      in: path
+      description: Device name
+      schema:
+        type: string
+      required: true
+  requestBodies:
+    SendCommandRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            properties:
+              defaultRequest:
+                description: When true, then default request fields are added to payload (`gwId`, `devId` and `t`)
+                type: boolean
+              payload:
+                description: Payload to send to the device. Only considered when `defaultRequest` is false (or not specified at all)
+                type: object
+  schemas:
+    AppConfig:
+      description: Root configuration object
+      properties:
+        server:
+          description: Server configuration
+          type: object
+          x-go-type: ccfg.ServerConfig
+          x-go-type-import:
+            path: github.com/rkosegi/go-http-commons/config
+            name: ccfg
+        devices:
+          $ref: '#/components/schemas/DeviceMap'
+
+    DeviceProtocol:
+      description: Protocol version to use when speaking to device
+      type: string
+      enum:
+        - tuya3.1
+        - tuya3.4
+
+    DeviceList:
+      description: List of devices, sorted by name
+      type: array
+      items:
+        $ref: '#/components/schemas/DeviceSpec'
+
+    DeviceMap:
+      description: Map of devices
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/DeviceSpec'
+
+    DeviceSpec:
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: Device symbolic name. Must be unique
+        id:
+          type: string
+          description: Device ID from Tuya API
+        key:
+          type: string
+          description: Encryption key from Tuya API
+        address:
+          type: string
+          description: |-
+            Device network address.
+            Might include port, but if not specified then 6668 is assumed.
+        connectTimeout:
+          type: string
+          description: |-
+            Connection timeout.
+            Default value is 10s
+          x-go-type: time.Duration
+        readTimeout:
+          type: string
+          description: |-
+            Network read timeout.
+            Default value is 10s
+          x-go-type: time.Duration
+        writeTimeout:
+          type: string
+          description: |-
+            Network write timeout.
+            Default value is 10s
+          x-go-type: time.Duration
+        protocol:
+          $ref: '#/components/schemas/DeviceProtocol'
+      required:
+        - name
+        - id
+        - key
+        - protocol
+        - address
+        - connectTimeout
+        - readTimeout
+        - writeTimeout
