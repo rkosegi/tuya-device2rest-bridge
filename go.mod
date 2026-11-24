@@ -27,7 +27,7 @@ require (
 	github.com/rkosegi/go-http-commons v0.0.4
 	github.com/rkosegi/slog-config v0.0.2
 	github.com/rkosegi/tuya-proto v0.0.0-20260818142017-82f645f6e686
-	github.com/rkosegi/yaml-toolkit v1.0.69
+	github.com/rkosegi/yaml-toolkit v1.0.70
 	github.com/samber/lo v1.53.0
 )
 
@@ -41,7 +41,7 @@ require (
 	github.com/go-openapi/swag/jsonname v0.26.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/magiconair/properties v1.8.10 // indirect
+	github.com/magiconair/properties v1.18.13 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.8.0 // indirect
 	github.com/pandatix/go-abnf v0.5.3 // indirect
